@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-Hant">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>CAT RHYTHM</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25c0f4",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#101e22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, rgba(37, 192, 244, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(37, 192, 244, 0.1) 1px, transparent 1px)",
+                    }
+                },
+            },
+        }
+
+        function startGame() {
+            if (!localStorage.getItem('hasVisited')) {
+                localStorage.setItem('hasVisited', 'true');
+                window.location.href = 'guide.html';
+            } else {
+                window.location.href = 'play.html';
+            }
+        }
+    </script>
+    <style>
+        .text-neon {
+            text-shadow: 0 0 10px rgba(37, 192, 244, 0.6), 0 0 20px rgba(37, 192, 244, 0.4), 0 0 30px rgba(37, 192, 244, 0.2);
+        }
+
+        .box-neon {
+            box-shadow: 0 0 15px rgba(37, 192, 244, 0.3), inset 0 0 10px rgba(37, 192, 244, 0.1);
+        }
+
+        .glass-panel {
+            background: rgba(16, 30, 34, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-button-primary {
+            background: rgba(37, 192, 244, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(37, 192, 244, 0.5);
+            box-shadow: 0 0 15px rgba(37, 192, 244, 0.2);
+        }
+
+        .glass-button-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display antialiased overflow-hidden selection:bg-primary selection:text-white">
+    <div class="relative h-screen w-full flex flex-col items-center justify-between overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-cover bg-center opacity-80"
+                data-alt="Abstract blue and purple neon low poly 3D geometric landscape"
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKjChsSRAeRbv85IKy7r23Ht3U4I8w3I-zgohdr4aiueP01CPsgBPyhq-e7QAL4KD7e2RGIr0Kp9JF0UvE6RTN9i9ZxxGKPnHLDsZTkUEIAhk6YtGe63Y4TUOWmCmj2m2qVZ_FLhsxC2xPLTwhPiIAPBYHuK8PCy8OMvZU8D4n7wPVHMyTKEAr-4jThmmL1wiK0fqeYKsvyFTnoyw0aXlDrEGgvxIWr3A4O5gmKdbk6HIdmhwZ3tbcF0Z3SbHsFIeACs0elmj4Rp8O');">
+            </div>
+            <div class="absolute inset-0 bg-grid-pattern bg-[length:40px_40px] opacity-20"
+                style="transform: perspective(500px) rotateX(60deg) translateY(-100px) scale(2);">
+            </div>
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-background-dark/30 via-transparent to-background-dark/90">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#101e22] via-transparent to-[#101e22]/50"></div>
+        </div>
+        <div class="relative z-10 flex flex-col h-full w-full max-w-md px-6 py-8">
+            <div class="flex-1"></div>
+            <div
+                class="flex flex-col items-center justify-center mb-12 transform hover:scale-105 transition-transform duration-500">
+                <div class="relative">
+                    <h1
+                        class="text-6xl font-bold text-center italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-primary drop-shadow-[0_0_15px_rgba(37,192,244,0.8)] leading-none">
+                        CAT
+                    </h1>
+                    <h1
+                        class="text-5xl font-bold text-center italic tracking-[0.2em] text-white/90 drop-shadow-md leading-none mt-1">
+                        RHYTHM
+                    </h1>
+                    <div
+                        class="absolute -top-6 -right-6 w-12 h-12 border-t-2 border-r-2 border-primary rounded-tr-xl opacity-60">
+                    </div>
+                    <div
+                        class="absolute -bottom-4 -left-6 w-12 h-12 border-b-2 border-l-2 border-white/50 rounded-bl-xl opacity-60">
+                    </div>
+                </div>
+                <p class="text-primary/80 text-sm font-medium tracking-[0.3em] uppercase mt-4 animate-pulse">
+                    System Ready
+                </p>
+            </div>
+            <div class="flex-1"></div>
+            <div class="w-full space-y-4 mb-8">
+                <button onclick="startGame()"
+                    class="group relative w-full h-16 glass-button-primary rounded-xl overflow-hidden transition-all duration-300 hover:bg-primary/30 hover:scale-[1.02] active:scale-[0.98]">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span
+                            class="material-symbols-outlined text-white mr-2 group-hover:animate-spin">play_circle</span>
+                        <span class="text-white text-xl font-bold tracking-wider">開始遊戲</span>
+                    </div>
+                    <div
+                        class="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine">
+                    </div>
+                </button>
+                <button onclick="window.location.href='menu.html?from=index'"
+                    class="w-full h-14 glass-button-secondary rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-white/10 hover:border-white/40 active:scale-[0.98]">
+                    <span class="material-symbols-outlined text-white/70 mr-2 text-xl">menu</span>
+                    <span class="text-white/90 text-lg font-bold tracking-wider">選單</span>
+                </button>
+            </div>
+            <div class="glass-panel rounded-xl p-4 flex items-center gap-4 mb-4 border-l-4 border-l-primary">
+                <div class="flex-shrink-0 bg-primary/20 p-2 rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl animate-bounce">view_in_ar</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs text-primary font-bold uppercase tracking-widest mb-1">Device Check</span>
+                    <p class="text-white/90 text-sm font-medium leading-tight">
+                        請戴上 VR 頭戴設備或使用手部追蹤
+                    </p>
+                </div>
+            </div>
+            <div class="h-4 w-full"></div>
+        </div>
+    </div>
+    <style>
+        @keyframes shine {
+            100% {
+                left: 125%;
+            }
+        }
+
+        .animate-shine {
+            animation: shine 1s;
+        }
+    </style>
+</body>
+
+</html>

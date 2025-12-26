@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Pause / Settings Menu</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25c0f4",
+                        "secondary": "#silver", // Abstract for gradients
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#101e22",
+                        "neon-glow": "rgba(37, 192, 244, 0.6)",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                    backgroundImage: {
+                        'metal-gradient': 'linear-gradient(135deg, #e0e0e0 0%, #ffffff 50%, #b0b0b0 100%)',
+                        'grid-pattern': 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and range input styling for cross-browser consistency */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+        }
+
+        .neon-text-shadow {
+            text-shadow: 0 0 10px rgba(37, 192, 244, 0.7), 0 0 20px rgba(37, 192, 244, 0.5);
+        }
+
+        .box-glow {
+            box-shadow: 0 0 15px rgba(37, 192, 244, 0.15);
+        }
+
+        .y2k-grid {
+            background-size: 20px 20px;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        /* Glass morphism utilities */
+        .glass-panel {
+            background: rgba(16, 30, 34, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="font-display bg-background-dark text-white h-screen w-full overflow-hidden select-none">
+    <!-- Game Background Simulation -->
+    <div class="fixed inset-0 z-0">
+        <img alt="Abstract neon city lights with motion blur" class="w-full h-full object-cover opacity-60"
+            data-alt="Abstract neon city lights with motion blur"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDypBgQHK4wx4IVp-HR_v-4QvgsWlzNgi2oRA1wFBp96epCsR6l99DAA6ES6Mj278uKfE5yl-yeXDXODAdKQ-1dpYSZyZeQTLxhsZ9wcMgkyYi3eYAq-HE7argrFhnVcLpkytUMOMG9gh1pih1RP20H-5c8GfNDLwitOxx86-gmqrXxl7VO7tZQSt8OIQN6GgtT0oVAFffeZU2W_ApbtLnxIpROjt5o88X2vGFq7X5hDX5ilZQagPPOf322LovRXYu75GxW7Tb-2GZa" />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#101e22] via-transparent to-[#101e22] opacity-80"></div>
+    </div>
+    <!-- Main Overlay Container -->
+    <div class="relative z-10 flex h-full w-full items-center justify-center p-4">
+        <!-- Glass Card -->
+        <div
+            class="glass-panel w-full max-w-md rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative group/design-root transition-all duration-300 transform">
+            <!-- Y2K Decorative Elements -->
+            <div class="absolute inset-0 y2k-grid pointer-events-none z-0"></div>
+            <div
+                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-80 z-10">
+            </div>
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary blur-[80px] opacity-20 pointer-events-none">
+            </div>
+            <div class="relative z-20 flex flex-col p-6 space-y-8">
+                <!-- Header -->
+                <div class="text-center pt-2">
+                    <h1
+                        class="text-[32px] font-bold leading-tight tracking-wider text-white neon-text-shadow uppercase italic">
+                        暫停 <span class="text-primary mx-1">/</span> 設定
+                    </h1>
+                    <div class="h-1 w-16 bg-primary mx-auto mt-3 rounded-full shadow-[0_0_10px_rgba(37,192,244,1)]">
+                    </div>
+                </div>
+                <!-- Volume Slider Section -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center px-1">
+                        <span class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Master Volume</span>
+                        <span class="text-xs font-bold text-primary">70%</span>
+                    </div>
+                    <div class="flex items-center gap-4 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <span class="material-symbols-outlined text-gray-400 text-[20px]">volume_mute</span>
+                        <div class="relative flex-1 h-6 flex items-center cursor-pointer group">
+                            <!-- Track Background -->
+                            <div
+                                class="absolute w-full h-2 bg-gray-700/50 rounded-full overflow-hidden border border-white/10 shadow-inner">
+                                <!-- Active Fill -->
+                                <div
+                                    class="h-full w-[70%] bg-gradient-to-r from-blue-500 to-primary shadow-[0_0_15px_rgba(37,192,244,0.5)]">
+                                </div>
+                            </div>
+                            <!-- Thumb -->
+                            <div
+                                class="absolute left-[70%] w-5 h-5 bg-white rounded-full border-2 border-primary shadow-[0_0_15px_rgba(255,255,255,0.8)] transform -translate-x-1/2 transition-transform hover:scale-110">
+                            </div>
+                        </div>
+                        <span
+                            class="material-symbols-outlined text-white text-[20px] drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">volume_up</span>
+                    </div>
+                </div>
+                <!-- Input Method Toggle -->
+                <div class="space-y-3">
+                    <span class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase px-1">Control Mode</span>
+                    <div
+                        class="flex bg-black/40 p-1.5 rounded-xl border border-white/10 relative overflow-hidden backdrop-blur-sm">
+                        <!-- Option 1: VR Controller (Active) -->
+                        <label class="flex-1 cursor-pointer relative group">
+                            <input checked="" class="peer sr-only" name="control-mode" type="radio" value="vr" />
+                            <div
+                                class="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all duration-300 text-gray-400 peer-checked:text-[#101e22] peer-checked:bg-gradient-to-r peer-checked:from-primary peer-checked:to-[#6ee7b7] peer-checked:shadow-[0_0_20px_rgba(37,192,244,0.4)]">
+                                <span class="material-symbols-outlined text-[18px]">videogame_asset</span>
+                                <span class="truncate">VR 控制器</span>
+                            </div>
+                        </label>
+                        <!-- Option 2: Hand Tracking (Inactive) -->
+                        <label class="flex-1 cursor-pointer relative group">
+                            <input class="peer sr-only" name="control-mode" type="radio" value="hands" />
+                            <div
+                                class="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all duration-300 text-gray-400 peer-checked:text-[#101e22] peer-checked:bg-gradient-to-r peer-checked:from-primary peer-checked:to-[#6ee7b7] peer-checked:shadow-[0_0_20px_rgba(37,192,244,0.4)] hover:text-white hover:bg-white/5">
+                                <span class="material-symbols-outlined text-[18px]">front_hand</span>
+                                <span class="truncate">手部追蹤</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <!-- Footer Actions -->
+                <div class="flex flex-col gap-3 pt-2">
+                    <button onclick="window.location.href='play.html'"
+                        class="relative w-full h-12 overflow-hidden rounded-xl group bg-gradient-to-r from-primary via-[#4dd0e1] to-primary bg-[length:200%_auto] hover:bg-right transition-all duration-500 shadow-[0_0_25px_rgba(37,192,244,0.25)] border border-transparent">
+                        <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                        </div>
+                        <span
+                            class="relative z-10 flex items-center justify-center gap-2 text-[#101e22] text-base font-bold tracking-wider uppercase">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                            繼續遊戲
+                        </span>
+                    </button>
+                    <button onclick="window.location.href='index.html'"
+                        class="w-full h-12 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-200">
+                        <span
+                            class="flex items-center justify-center gap-2 text-base font-bold tracking-wider uppercase text-gray-300 group-hover:text-white">
+                            <span class="material-symbols-outlined">home</span>
+                            回到首頁
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <!-- Bottom decorative bar -->
+            <div
+                class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-30">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

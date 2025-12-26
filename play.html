@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>CAT RHYTHM - Rhythm Game</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Noto+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25c0f4",
+                        "background-dark": "#101e22",
+                        "neon-pink": "#ff00ff",
+                        "neon-yellow": "#facc15"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .neon-text {
+            text-shadow: 0 0 10px rgba(37, 192, 244, 0.8);
+        }
+
+        .glass-panel {
+            background: rgba(16, 30, 34, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Rhythm Game Styles */
+        .arrow-frame {
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(37, 192, 244, 0.5);
+            border-radius: 12px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 192, 244, 0.05);
+            transition: transform 0.1s, border-color 0.2s;
+            z-index: 20;
+        }
+
+        .arrow-frame.hit {
+            transform: scale(1.1);
+            border-color: white;
+        }
+
+        .square {
+            width: 40px;
+            height: 40px;
+            background: #25c0f4;
+            border-radius: 6px;
+            position: absolute;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(37, 192, 244, 0.6);
+            z-index: 30;
+            pointer-events: auto;
+        }
+
+        .judgement-text {
+            position: absolute;
+            font-weight: 900;
+            font-style: italic;
+            font-size: 2rem;
+            pointer-events: none;
+            z-index: 100;
+            animation: popOut 0.5s ease-out forwards;
+        }
+
+        @keyframes popOut {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-50px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Cat Frames at Bottom */
+        .cat-frame {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #283539;
+        }
+
+        .frame-blue {
+            border-color: #25c0f4;
+            box-shadow: 0 0 15px rgba(37, 192, 244, 0.5);
+        }
+
+        .frame-yellow {
+            border-color: #facc15;
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+        }
+
+        .frame-red {
+            border-color: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+
+        .jump-anim {
+            animation: jump 0.4s infinite alternate;
+        }
+
+        @keyframes jump {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-10px);
+            }
+        }
+
+        #model-status {
+            transition: opacity 1s;
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-hidden h-screen w-full relative select-none">
+
+    <!-- 3D Background & Models -->
+    <div id="canvas-container" class="absolute inset-0 z-0 pointer-events-none"></div>
+
+    <!-- UI Overlay Layer -->
+    <div class="relative z-50 flex h-full flex-col max-w-lg mx-auto pointer-events-none">
+        <!-- Top Nav -->
+        <div class="flex items-center p-4 justify-between pointer-events-auto">
+            <button onclick="window.location.href='pause.html'"
+                class="text-white flex size-12 items-center justify-center rounded-full glass-panel hover:bg-white/10 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-3xl">pause</span>
+            </button>
+            <div class="flex flex-col items-center">
+                <h2 class="text-primary text-xl font-bold leading-tight tracking-[0.2em] italic neon-text uppercase">Cat
+                    Rhythm</h2>
+                <div class="h-1 w-12 bg-gradient-to-r from-transparent via-primary to-transparent mt-1"></div>
+            </div>
+            <button onclick="window.location.href='menu.html?from=play'"
+                class="flex w-12 items-center justify-center size-12 rounded-full glass-panel hover:bg-white/10 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-[#9cb2ba]">menu</span>
+            </button>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="px-4 pb-2">
+            <div
+                class="flex items-center justify-between glass-panel rounded-xl p-4 shadow-xl border-t border-white/20">
+                <div class="flex flex-col items-start gap-1">
+                    <p class="text-[#9cb2ba] text-xs font-bold tracking-widest uppercase">Score</p>
+                    <p id="score-val" class="text-white tracking-widest text-2xl font-bold font-mono">0</p>
+                </div>
+                <div class="h-8 w-[1px] bg-white/10"></div>
+                <div class="flex flex-col items-end gap-1">
+                    <p class="text-[#9cb2ba] text-xs font-bold tracking-widest uppercase">Combo</p>
+                    <p id="combo-val" class="text-neon-yellow tracking-tight text-3xl font-black italic neon-text">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Interaction Area -->
+        <div id="game-area" class="flex-1 relative pointer-events-auto">
+            <!-- Arrow Frames -->
+            <div id="frame-left" class="arrow-frame" style="left: 15%; top: 40%">
+                <span class="material-symbols-outlined text-4xl opacity-40">keyboard_arrow_left</span>
+            </div>
+            <div id="frame-top" class="arrow-frame" style="left: 50%; top: 15%; transform: translateX(-50%)">
+                <span class="material-symbols-outlined text-4xl opacity-40">keyboard_arrow_up</span>
+            </div>
+            <div id="frame-right" class="arrow-frame" style="right: 15%; top: 40%">
+                <span class="material-symbols-outlined text-4xl opacity-40">keyboard_arrow_right</span>
+            </div>
+        </div>
+
+        <!-- Bottom Cat Frames -->
+        <div class="mt-auto px-4 pb-12 flex flex-col items-center gap-4">
+            <p id="feedback-label"
+                class="text-xs font-bold tracking-[0.5em] text-primary uppercase opacity-0 transition-opacity">
+                Fantastic!</p>
+            <div class="flex items-center justify-center gap-8 h-24 relative w-full">
+                <!-- Frame Container -->
+                <div id="frame-indicator" class="cat-frame frame-blue jump-anim">
+                    <img id="frame-cat-img" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxcb-j7JwWiGBLGXFZq2rH5oTcZTFL3a8MbCCvqL_FU4qlzNWa7ZRgIZ1iorR2yOkvocMwTEH4f-BawyAm-ac_mRGPkVBBX56tgS0uGmHY8AfMt35ZO7g2XQ7iogw8WBodCups80fM2sRtx1fPMDIF5mq3AOzo1ug9_5nGxIrF0LsjXXeGEBaEq1X0jALKruCxGSUa2RKXjG1xEx_st8VwL8Dovy_KL5Nxlqcd27rKd-av8ohxW78w9fHDWz4efZ7Xbif3rf9wlqSj" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown Overlay -->
+        <div id="countdown-overlay"
+            class="absolute inset-0 flex items-center justify-center pointer-events-none z-[60]">
+            <span id="countdown-text" class="text-white text-8xl font-black italic neon-text opacity-0"></span>
+        </div>
+    </div>
+
+    <!-- Status Overlay -->
+    <div id="model-status" class="fixed top-20 left-4 z-[100] pointer-events-none">
+        <div class="bg-black/60 backdrop-blur text-white p-2 rounded text-[10px] font-mono border border-white/10">
+            <span id="status-text">INITIALIZING...</span>
+        </div>
+    </div>
+
+    <!-- Three.js Module -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+
+        const statusText = document.getElementById('status-text');
+        const updateStatus = (m) => statusText.textContent = m.toUpperCase();
+
+        const CONFIG = {
+            PERFECT_RANGE: 20, // Lowered standard (was 10)
+            NORMAL_RANGE: 60,  // Lowered standard (was 40)
+            GENERATE_INTERVAL: 1500,
+            SQUARE_SPEED: 0.8, // Reduced speed (was 1.8)
+            COMBO_YELLOW: 3,
+            GAME_DURATION: 45000
+        };
+
+        let state = {
+            score: 0,
+            combo: 0,
+            perfectCount: 0,
+            normalCount: 0,
+            missCount: 0,
+            maxCombo: 0,
+            consecutiveNormal: 0,
+            consecutiveMiss: 0,
+            activeCat: 'WHITE',
+            isGameOver: false,
+            squares: []
+        };
+
+        const scoreEl = document.getElementById('score-val');
+        const comboEl = document.getElementById('combo-val');
+        const feedbackEl = document.getElementById('feedback-label');
+        const frameIndicator = document.getElementById('frame-indicator');
+        const frameImg = document.getElementById('frame-cat-img');
+
+        // --- Three.js ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+        camera.position.set(0, 180, 500);
+        camera.lookAt(0, 120, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const ambiLight = new THREE.AmbientLight(0xffffff, 1.2);
+        scene.add(ambiLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(100, 200, 100);
+        scene.add(dirLight);
+
+        // --- Stage Elements ---
+        // 1. Glowing Floor Circle
+        const floorGeo = new THREE.CircleGeometry(250, 64);
+        const floorMat = new THREE.MeshPhongMaterial({
+            color: 0x25c0f4,
+            transparent: true,
+            opacity: 0.2,
+            side: THREE.DoubleSide
+        });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -55; // Lowered by 50 (was -5)
+        scene.add(floor);
+
+        // 2. Neon Ring
+        const ringGeo = new THREE.TorusGeometry(250, 2, 16, 100);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x25c0f4 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = -54; // Lowered by 50 (was -4)
+        scene.add(ring);
+
+        // 3. Simple Grid
+        const grid = new THREE.GridHelper(2000, 50, 0x25c0f4, 0x1a2b2e);
+        grid.position.y = -60; // Lowered by 50 (was -10)
+        scene.add(grid);
+
+        const models = {
+            WHITE: { path: 'model/白貓.fbx', object: null, mixer: null, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxcb-j7JwWiGBLGXFZq2rH5oTcZTFL3a8MbCCvqL_FU4qlzNWa7ZRgIZ1iorR2yOkvocMwTEH4f-BawyAm-ac_mRGPkVBBX56tgS0uGmHY8AfMt35ZO7g2XQ7iogw8WBodCups80fM2sRtx1fPMDIF5mq3AOzo1ug9_5nGxIrF0LsjXXeGEBaEq1X0jALKruCxGSUa2RKXjG1xEx_st8VwL8Dovy_KL5Nxlqcd27rKd-av8ohxW78w9fHDWz4efZ7Xbif3rf9wlqSj' },
+            YELLOW: { path: 'model/黃貓.fbx', object: null, mixer: null, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCZZRiHbOd6-KAW55PESBUTj3h8RhoORAjmdTGpLf9-OnyXLxuKSuFkmK6OfvPGJoRkHzw3-Iq3Tpzmev3UrI1JN8k3IECS_dKHy0H8vET2KI5wiFEip4htu4W9YQelNl9sbWkKEAFo1rIooMV8DxKmKVCEu4m4e84Tw4tduqXqzBKFBoGS3GtCTx352FaWpfZj-Sl38IO4tUE2_vY8bh7RBC-i4e4XdS6glgtRXEu2sqTf5Cx_tx2PoyRl-y0Xt17cVauSzePQ9iZp' },
+            RED: { path: 'model/紅貓.fbx', object: null, mixer: null, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDws7doFdyINvr9dy7pXKNhdWq9qm-zEd3PXY4XZzB6_h_B9j_NFG7d6ux0Ulflgj-Qpc9t68rnFd9yDZ-KFO6olAgFLNtIL_rvQCeD_fqsswT65nwoWux5b05w8RZCC1JAMx_YMOtlWd42nrfHvDTDZrwjXZhwWCOQJZli_Pof56pUsjHVSCrLM5fhNXEx50t7zoAi4SXxf-3VSTl0u724n3EnbXPRXEHZts2e31ixA2P0LFpaBt7TuI0xv1pAmQvFcXcKtMymPC76' }
+        };
+
+        const loader = new FBXLoader();
+        let loadedCount = 0;
+
+        function loadAllModels() {
+            Object.keys(models).forEach(key => {
+                loader.load(models[key].path, (fbx) => {
+                    fbx.traverse(child => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    const box = new THREE.Box3().setFromObject(fbx);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scaleFactor = 160 / maxDim;
+                    fbx.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                    // Requirement: rotate another 90 degrees to the right (Total 270 degrees)
+                    fbx.rotation.y = Math.PI * 1.5;
+
+                    fbx.visible = false;
+                    models[key].object = fbx;
+                    if (fbx.animations.length > 0) {
+                        models[key].mixer = new THREE.AnimationMixer(fbx);
+                        // Store the default clip
+                        models[key].action = models[key].mixer.clipAction(fbx.animations[0]);
+                        models[key].action.play();
+                    }
+                    scene.add(fbx);
+                    loadedCount++;
+                    if (loadedCount === 3) {
+                        // Ensure White cat is active and visible as soon as loaded
+                        switchCat('WHITE');
+                        startEnteringGame();
+                    }
+                }, undefined, (e) => console.error(e));
+            });
+        }
+
+        function switchCat(target) {
+            if (state.activeCat === target && !state.isGameOver) return;
+            if (state.isGameOver) return;
+
+            Object.keys(models).forEach(k => { if (models[k].object) models[k].object.visible = false; });
+
+            state.activeCat = target;
+            const model = models[target].object;
+            if (model) {
+                model.visible = true;
+                model.position.set(0, 50, 0); // Raised position for the stage
+            }
+
+            frameIndicator.className = 'cat-frame jump-anim';
+            feedbackEl.style.opacity = '0';
+            frameImg.src = models[target].img;
+
+            if (target === 'YELLOW') {
+                frameIndicator.classList.add('frame-yellow');
+                feedbackEl.textContent = 'FANTASTIC';
+                feedbackEl.style.opacity = '1';
+                frameIndicator.style.transform = 'scale(1.2)';
+            } else if (target === 'RED') {
+                frameIndicator.classList.add('frame-red');
+                feedbackEl.textContent = 'OUCH!';
+                feedbackEl.style.opacity = '1';
+                frameIndicator.style.transform = 'scale(1)';
+            } else {
+                frameIndicator.classList.add('frame-blue');
+                frameIndicator.style.transform = 'scale(1)';
+            }
+        }
+
+        function triggerDanceResponse(direction) {
+            const model = models[state.activeCat].object;
+            if (!model) return;
+
+            // Temporary reaction animation
+            const originalY = 50; // Use the raised position as base
+            const originalZ = 0;
+            const originalX = 0;
+
+            if (direction === 'top') {
+                model.position.y = 30; // Jump
+            } else if (direction === 'left') {
+                model.rotation.z = 0.4;
+                model.position.x = -20;
+            } else if (direction === 'right') {
+                model.rotation.z = -0.4;
+                model.position.x = 20;
+            }
+
+            setTimeout(() => {
+                model.position.y = originalY;
+                model.position.x = 0;
+                model.rotation.z = originalZ;
+            }, 200);
+        }
+
+        const gameArea = document.getElementById('game-area');
+        const frames_el = {
+            left: document.getElementById('frame-left'),
+            top: document.getElementById('frame-top'),
+            right: document.getElementById('frame-right')
+        };
+
+        function spawnSquare() {
+            if (state.isGameOver) return;
+            const keys = ['left', 'top', 'right'];
+            const startKey = keys[Math.floor(Math.random() * 3)];
+
+            const frame = frames_el[startKey];
+            const rect = frame.getBoundingClientRect();
+            const areaRect = gameArea.getBoundingClientRect();
+
+            // Destination is the ARROW center
+            const destX = (rect.left + rect.width / 2) - areaRect.left - 20;
+            const destY = (rect.top + rect.height / 2) - areaRect.top - 20;
+
+            const offset = 250; // Distance to slide in from
+            let startX = destX;
+            let startY = destY;
+            let vx = 0;
+            let vy = 0;
+
+            // Opposite direction slide-in
+            if (startKey === 'left') {
+                startX = destX - offset;
+                vx = CONFIG.SQUARE_SPEED;
+            } else if (startKey === 'right') {
+                startX = destX + offset;
+                vx = -CONFIG.SQUARE_SPEED;
+            } else { // top
+                startY = destY - offset;
+                vy = CONFIG.SQUARE_SPEED;
+            }
+
+            const sq = document.createElement('div');
+            sq.className = 'square';
+            sq.style.left = `${startX}px`;
+            sq.style.top = `${startY}px`;
+
+            const squareObj = { el: sq, x: startX, y: startY, vx: vx, vy: vy, frameId: startKey, distanceTravelled: 0 };
+            sq.onclick = (e) => { e.stopPropagation(); handleHit(squareObj); };
+            gameArea.appendChild(sq);
+            state.squares.push(squareObj);
+        }
+
+        function handleHit(sqObj) {
+            if (state.isGameOver) return;
+            const frameRect = frames_el[sqObj.frameId].getBoundingClientRect();
+            const sqRect = sqObj.el.getBoundingClientRect();
+            const centerX = frameRect.left + frameRect.width / 2;
+            const centerY = frameRect.top + frameRect.height / 2;
+            const sqCenterX = sqRect.left + sqRect.width / 2;
+            const sqCenterY = sqRect.top + sqRect.height / 2;
+            const dist = Math.sqrt(Math.pow(centerX - sqCenterX, 2) + Math.pow(centerY - sqCenterY, 2));
+
+            if (dist <= CONFIG.PERFECT_RANGE) finalizeJudgement('PERFECT', sqObj);
+            else if (dist <= CONFIG.NORMAL_RANGE) finalizeJudgement('NORMAL', sqObj);
+            else finalizeJudgement('MISS', sqObj);
+        }
+
+        function finalizeJudgement(type, sqObj) {
+            if (!sqObj.el.parentNode) return;
+            sqObj.el.remove();
+            state.squares = state.squares.filter(s => s !== sqObj);
+
+            const text = document.createElement('div');
+            text.className = 'judgement-text ' + (type === 'MISS' ? 'text-red-500' : 'text-primary');
+            text.textContent = type;
+            text.style.left = sqObj.x + 'px';
+            text.style.top = sqObj.y + 'px';
+            gameArea.appendChild(text);
+            setTimeout(() => text.remove(), 600);
+
+            if (type === 'MISS') {
+                state.combo = 0;
+                state.missCount++;
+                state.consecutiveNormal = 0;
+                state.consecutiveMiss++;
+
+                if (state.consecutiveMiss >= 2) {
+                    switchCat('RED');
+                }
+            } else {
+                state.score += (type === 'PERFECT' ? 150 : 100);
+                state.combo++;
+                if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+                state.consecutiveMiss = 0;
+
+                if (type === 'PERFECT') {
+                    state.perfectCount++;
+                    state.consecutiveNormal = 0;
+                } else {
+                    state.normalCount++;
+                    state.consecutiveNormal++;
+                }
+
+                if (state.combo >= CONFIG.COMBO_YELLOW) {
+                    switchCat('YELLOW');
+                } else if (state.consecutiveNormal >= 3) {
+                    switchCat('WHITE');
+                } else if (state.activeCat !== 'YELLOW') {
+                    switchCat('WHITE');
+                }
+
+                triggerDanceResponse(sqObj.frameId);
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            scoreEl.textContent = state.score;
+            comboEl.textContent = state.combo;
+        }
+
+        function gameLoop() {
+            if (state.isGameOver) return;
+            const areaRect = gameArea.getBoundingClientRect();
+            state.squares.forEach(sq => {
+                sq.x += sq.vx; sq.y += sq.vy;
+                sq.distanceTravelled += Math.sqrt(sq.vx * sq.vx + sq.vy * sq.vy);
+                sq.el.style.left = sq.x + 'px'; sq.el.style.top = sq.y + 'px';
+
+                const frameRect = frames_el[sq.frameId].getBoundingClientRect();
+                const centerX = frameRect.left + frameRect.width / 2;
+                const centerY = frameRect.top + frameRect.height / 2;
+                const sqCenterX = areaRect.left + sq.x + 20;
+                const sqCenterY = areaRect.top + sq.y + 20;
+                const dist = Math.sqrt(Math.pow(centerX - sqCenterX, 2) + Math.pow(centerY - sqCenterY, 2));
+
+                // Miss if it passes the arrow and goes too far away (e.g. starts 250, zero at arrow, miss at 100 on other side)
+                if (sq.distanceTravelled > 400) finalizeJudgement('MISS', sq);
+            });
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            state.isGameOver = true;
+            updateStatus("Game Complete!");
+
+            // Hide indicator and UI frames
+            frameIndicator.style.display = 'none';
+            feedbackEl.style.display = 'none';
+            document.querySelectorAll('.arrow-frame').forEach(f => f.style.display = 'none');
+            document.querySelectorAll('.square').forEach(s => s.remove());
+
+            // Show all three cats bowing
+            const positions = [-150, 0, 150];
+            const keys = ['RED', 'WHITE', 'YELLOW'];
+            keys.forEach((k, i) => {
+                const model = models[k].object;
+                if (model) {
+                    model.visible = true;
+                    model.position.set(positions[i], 50, 80); // Raised position
+                    model.rotation.y = Math.PI * 1.5; // Total 270 degrees rotation
+
+                    // Simple bowing motion using code if no animation clip is found
+                    // We'll handle this in the animate3D loop using a 'bowing' flag
+                }
+            });
+            state.isBowing = true;
+
+            // --- SAVE STATS ---
+            const gameStats = {
+                score: state.score,
+                perfect: state.perfectCount,
+                normal: state.normalCount,
+                miss: state.missCount,
+                maxCombo: state.maxCombo,
+                totalNotes: state.perfectCount + state.normalCount + state.missCount
+            };
+            localStorage.setItem('lastGameStats', JSON.stringify(gameStats));
+
+            // Jump to over.html after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'over.html';
+            }, 2000);
+        }
+
+        function startEnteringGame() {
+            updateStatus("Get Ready!");
+            // Immediate countdown without 5s wait
+            const overlay = document.getElementById('countdown-overlay');
+            const text = document.getElementById('countdown-text');
+
+            let count = 3;
+            updateStatus("Countdown");
+
+            const interval = setInterval(() => {
+                if (count > 0) {
+                    text.textContent = count;
+                    text.style.opacity = '1';
+                    text.animate([
+                        { transform: 'scale(0.5)', opacity: 0 },
+                        { transform: 'scale(1.2)', opacity: 1 },
+                        { transform: 'scale(1)', opacity: 1 }
+                    ], { duration: 500 });
+
+                    count--;
+                } else {
+                    clearInterval(interval);
+                    text.textContent = "GO!";
+                    setTimeout(() => {
+                        text.style.opacity = '0';
+                        document.getElementById('model-status').style.opacity = '0';
+
+                        setInterval(spawnSquare, CONFIG.GENERATE_INTERVAL);
+                        gameLoop();
+                        setTimeout(endGame, CONFIG.GAME_DURATION);
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        loadAllModels();
+        const clock = new THREE.Clock();
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            const delta = clock.getDelta();
+            const time = clock.elapsedTime;
+
+            Object.keys(models).forEach(k => {
+                const modelData = models[k];
+                if (modelData.mixer) modelData.mixer.update(delta);
+
+                // End game bowing animation
+                if (state.isBowing && modelData.object && modelData.object.visible) {
+                    // Periodic bowing motion
+                    modelData.object.rotation.x = Math.sin(time * 3) * 0.3 + 0.3;
+                }
+            });
+            renderer.render(scene, camera);
+        }
+        animate3D();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>
