@@ -239,25 +239,26 @@
             }
         }
 
-        /* Portrait Adaptations */
-        @media (max-aspect-ratio: 1/1) {
+        /* Portrait Adaptations - Broadened to catch most mobile screens */
+        @media (max-width: 768px),
+        (max-aspect-ratio: 1/1) {
             .arrow-frame {
                 scale: 0.85;
             }
 
             #frame-left {
-                left: 8% !important;
-                bottom: 30% !important;
+                left: 5% !important;
+                bottom: 60% !important;
             }
 
             #frame-top {
                 left: 50% !important;
-                bottom: 45% !important;
+                bottom: 80% !important;
             }
 
             #frame-right {
-                right: 8% !important;
-                bottom: 30% !important;
+                right: 5% !important;
+                bottom: 60% !important;
             }
 
             .cat-frame {
@@ -766,9 +767,13 @@
                 if (model) {
                     model.visible = true;
                     // Position: Yellow (Left), Cybercat (Center), Red (Right)
+                    // Responsive Spacing: Check for mobile portrait (screen width < height)
+                    const isPortrait = window.innerWidth < window.innerHeight;
+                    const spacing = isPortrait ? 90 : 180; // Reduce spacing on mobile
+
                     let posX = 0;
-                    if (key === 'YELLOW') posX = -180;
-                    if (key === 'RED') posX = 180;
+                    if (key === 'YELLOW') posX = -spacing;
+                    if (key === 'RED') posX = spacing;
 
                     model.position.set(posX, 195, 120);
 
@@ -837,8 +842,9 @@
             const lanes = ['left', 'top', 'right'];
             // Filter lanes to avoid overlap: check if any note in the lane is too close to start
             const availableLanes = lanes.filter(lane => {
-                // If a note's progress is < 0.25, that lane is considered "busy"
-                return !state.notes.some(n => n.lane === lane && n.progress < 0.25);
+                // Ideally wait until previous note is ~45% down the track to spawn another.
+                // This prevents "stacking" which is hard to read on mobile.
+                return !state.notes.some(n => n.lane === lane && n.progress < 0.45);
             });
 
             if (availableLanes.length === 0) return; // Skip if all lanes are busy
@@ -1319,17 +1325,16 @@
 
             // Adjust camera position/FOV for portrait
             if (camera.aspect < 1) {
-                // Portrait: Zoom closer, LookAt slightly higher to shift stage visual down
-                camera.fov = 65;
-                camera.position.z = 650; // Zoom in significantly (was 800)
-                camera.position.y = 350; // Maintain Y
-                camera.lookAt(0, 320, 0);
+                // Portrait: Revert to standard wide shot (Z=900) to keep stage size normal
+                camera.fov = 70;
+                camera.position.z = 900;
+                camera.position.y = 380; // Keep slightly higher angle
             } else {
                 camera.fov = 45;
                 camera.position.z = 650;
                 camera.position.y = 320;
-                camera.lookAt(0, 260, 50); // Standard view
             }
+            camera.lookAt(0, 260, 50); // Unified lookAt
 
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1339,5 +1344,3 @@
         window.dispatchEvent(new Event('resize'));
     </script>
 </body>
-
-</html>
