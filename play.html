@@ -57,9 +57,10 @@
 
         /* Rhythm Game Styles */
         .arrow-frame {
-            width: 70px;
-            height: 70px;
-            border: 2px solid rgba(37, 192, 244, 0.5);
+            width: 100px;
+            /* Increased from 80px for better touch sensitivity */
+            height: 100px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             position: absolute;
             display: flex;
@@ -1330,11 +1331,11 @@
 
             // Adjust camera position/FOV for portrait
             if (camera.aspect < 1) {
-                // Portrait: Zoom In (Z=600), Look Lower (Y=200) -> Stage moves UP visually
+                // Portrait: Zoom In (Z=600), Look Lower (Y=230) -> Stage moves UP visually but 5% lower than before
                 camera.fov = 65;
                 camera.position.z = 600;
                 camera.position.y = 350;
-                camera.lookAt(0, 200, 0);
+                camera.lookAt(0, 230, 0);
             } else {
                 camera.fov = 45;
                 camera.position.z = 650;
