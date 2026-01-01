@@ -246,7 +246,7 @@
             }
 
             #frame-left {
-                left: 2% !important;
+                left: 10% !important;
                 bottom: 60% !important;
             }
 
@@ -256,7 +256,7 @@
             }
 
             #frame-right {
-                right: 2% !important;
+                right: 10% !important;
                 bottom: 60% !important;
             }
 
@@ -761,19 +761,23 @@
             createConfetti();
 
             // Show all three cats for the finale
+            const isPortrait = window.innerWidth < window.innerHeight;
+            const bowScale = isPortrait ? 0.65 : 1.0; // Shrink for mobile portrait
+            const bowSpacing = isPortrait ? 110 : 180; // Tighter formation for mobile
+
             Object.keys(models).forEach(key => {
                 const model = models[key].object;
                 if (model) {
                     model.visible = true;
                     // Position: Yellow (Left), Cybercat (Center), Red (Right)
                     let posX = 0;
-                    if (key === 'YELLOW') posX = -180;
-                    if (key === 'RED') posX = 180;
+                    if (key === 'YELLOW') posX = -bowSpacing;
+                    if (key === 'RED') posX = bowSpacing;
 
                     model.position.set(posX, 195, 120);
 
-                    // Reset scales to base
-                    const baseS = model.userData.baseScale || 1.0;
+                    // Reset scales to base * bowScale
+                    const baseS = (model.userData.baseScale || 1.0) * bowScale;
                     model.scale.set(baseS, baseS, baseS);
                 }
             });
@@ -1326,11 +1330,11 @@
 
             // Adjust camera position/FOV for portrait
             if (camera.aspect < 1) {
-                // Portrait: Big Model (Z=600), Low Stage (LookAt Y=400)
+                // Portrait: Zoom In (Z=600), Look Lower (Y=200) -> Stage moves UP visually
                 camera.fov = 65;
-                camera.position.z = 600; // Zoom in for large model
+                camera.position.z = 600;
                 camera.position.y = 350;
-                camera.lookAt(0, 400, 0); // Look higher -> Pushes world down
+                camera.lookAt(0, 200, 0);
             } else {
                 camera.fov = 45;
                 camera.position.z = 650;
