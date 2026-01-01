@@ -239,25 +239,24 @@
             }
         }
 
-        /* Portrait Adaptations - Broadened to catch most mobile screens */
-        @media (max-width: 768px),
-        (max-aspect-ratio: 1/1) {
+        /* Portrait Adaptations */
+        @media (max-aspect-ratio: 1/1) {
             .arrow-frame {
                 scale: 0.85;
             }
 
             #frame-left {
-                left: 5% !important;
+                left: 2% !important;
                 bottom: 60% !important;
             }
 
             #frame-top {
                 left: 50% !important;
-                bottom: 80% !important;
+                bottom: 75% !important;
             }
 
             #frame-right {
-                right: 5% !important;
+                right: 2% !important;
                 bottom: 60% !important;
             }
 
@@ -767,13 +766,9 @@
                 if (model) {
                     model.visible = true;
                     // Position: Yellow (Left), Cybercat (Center), Red (Right)
-                    // Responsive Spacing: Check for mobile portrait (screen width < height)
-                    const isPortrait = window.innerWidth < window.innerHeight;
-                    const spacing = isPortrait ? 90 : 180; // Reduce spacing on mobile
-
                     let posX = 0;
-                    if (key === 'YELLOW') posX = -spacing;
-                    if (key === 'RED') posX = spacing;
+                    if (key === 'YELLOW') posX = -180;
+                    if (key === 'RED') posX = 180;
 
                     model.position.set(posX, 195, 120);
 
@@ -840,11 +835,14 @@
             if (state.isGameOver || !state.isIdling) return;
 
             const lanes = ['left', 'top', 'right'];
+            // Mobile Optimization: Stricter overlap check and reduced density
+            const isMobile = window.innerWidth < 768;
+            const overlapThreshold = isMobile ? 0.4 : 0.25;
+
             // Filter lanes to avoid overlap: check if any note in the lane is too close to start
             const availableLanes = lanes.filter(lane => {
-                // Ideally wait until previous note is ~45% down the track to spawn another.
-                // This prevents "stacking" which is hard to read on mobile.
-                return !state.notes.some(n => n.lane === lane && n.progress < 0.45);
+                // If a note's progress is < threshold, that lane is considered "busy"
+                return !state.notes.some(n => n.lane === lane && n.progress < overlapThreshold);
             });
 
             if (availableLanes.length === 0) return; // Skip if all lanes are busy
@@ -1024,8 +1022,11 @@
                 // Lower threshold to 1.1 for higher sensitivity and set a lower minimum energy (25)
                 const isPeak = energy > avgEnergy * 1.1 && energy > 25;
 
-                // Use a significantly shorter cool-down (200ms) to allow more frequent beats
-                if (isPeak && now - state.lastSpawnTime > 200) {
+                // Adaptive Cooldown based on device
+                const isMobile = window.innerWidth < 768;
+                const minSpawnInterval = isMobile ? 350 : 200; // Mobile: 350ms, Desktop: 200ms
+
+                if (isPeak && now - state.lastSpawnTime > minSpawnInterval) {
                     shouldSpawn = true;
                 }
             } else if (state.isIdling && !state.isGameOver) {
@@ -1325,16 +1326,17 @@
 
             // Adjust camera position/FOV for portrait
             if (camera.aspect < 1) {
-                // Portrait: Revert to standard wide shot (Z=900) to keep stage size normal
-                camera.fov = 70;
-                camera.position.z = 900;
-                camera.position.y = 380; // Keep slightly higher angle
+                // Portrait: Big Model (Z=600), Low Stage (LookAt Y=400)
+                camera.fov = 65;
+                camera.position.z = 600; // Zoom in for large model
+                camera.position.y = 350;
+                camera.lookAt(0, 400, 0); // Look higher -> Pushes world down
             } else {
                 camera.fov = 45;
                 camera.position.z = 650;
                 camera.position.y = 320;
+                camera.lookAt(0, 260, 50); // Standard view
             }
-            camera.lookAt(0, 260, 50); // Unified lookAt
 
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1344,3 +1346,5 @@
         window.dispatchEvent(new Event('resize'));
     </script>
 </body>
+
+</html>
