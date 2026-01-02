@@ -987,7 +987,8 @@
             const lanes = ['left', 'top', 'right'];
             // Mobile Optimization: Stricter overlap check and reduced density
             const isMobile = window.innerWidth < 768;
-            const overlapThreshold = isMobile ? 0.4 : 0.25;
+            // Reduced gap for mobile: 0.4 -> 0.3 (allows closer notes but not stacked)
+            const overlapThreshold = isMobile ? 0.3 : 0.25;
 
             // Filter lanes to avoid overlap: check if any note in the lane is too close to start
             const availableLanes = lanes.filter(lane => {
@@ -1170,18 +1171,20 @@
                 state.beatEnergyHistory.push(energy);
 
                 // Lower threshold to 1.1 for higher sensitivity and set a lower minimum energy (25)
-                const isPeak = energy > avgEnergy * 1.1 && energy > 25;
+                // Adjusted: 1.1 -> 1.08 for slightly more notes
+                const isPeak = energy > avgEnergy * 1.08 && energy > 25;
 
                 // Adaptive Cooldown based on device
                 const isMobile = window.innerWidth < 768;
-                const minSpawnInterval = isMobile ? 350 : 200; // Mobile: 350ms, Desktop: 200ms
+                // Adjusted: 350 -> 250 for mobile (closer to desktop 200) to fill gaps
+                const minSpawnInterval = isMobile ? 250 : 200;
 
                 if (isPeak && now - state.lastSpawnTime > minSpawnInterval) {
                     shouldSpawn = true;
                 }
             } else if (state.isIdling && !state.isGameOver) {
-                // Fallback: spawn every 0.8s if analysis isn't working/ready 
-                if (now - state.lastSpawnTime > 800) {
+                // Fallback: spawn every 0.55s (was 0.8s) to keep density up
+                if (now - state.lastSpawnTime > 550) {
                     shouldSpawn = true;
                 }
             }
