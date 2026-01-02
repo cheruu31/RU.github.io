@@ -476,6 +476,13 @@
         // --- Audio Unlock System (Mobile Fix) ---
         function unlockAudio() {
             const ctx = listener.context;
+
+            // Clear "TAP SCREEN!" hint on any interaction if it's visible
+            if (feedbackEl.textContent === 'TAP SCREEN!') {
+                feedbackEl.style.opacity = '0';
+                feedbackEl.style.transform = 'scale(0.5)';
+            }
+
             if (ctx.state === 'suspended') {
                 ctx.resume().then(() => {
                     console.log('AudioContext resumed!');
@@ -814,21 +821,32 @@
                     // CRITICAL: Set state FIRST so game runs even if audio fails
                     state.isIdling = true;
 
+                    // Helper to show hint
+                    const showTapHint = () => {
+                        feedbackEl.textContent = "TAP SCREEN!";
+                        feedbackEl.style.opacity = '1';
+                        feedbackEl.style.color = '#facc15';
+                        feedbackEl.style.transform = 'scale(1.5)';
+                    };
+
                     // Start Music (Safe Wrappers)
                     if (state.sound && state.sound.buffer) {
                         try {
                             const p = state.sound.play();
                             if (p && typeof p.catch === 'function') {
-                                p.catch(e => console.warn("Music autoplay blocked", e));
+                                p.catch(e => {
+                                    console.warn("Music autoplay blocked", e);
+                                    showTapHint();
+                                });
                             }
                         } catch (e) {
                             console.warn("Music play blocked", e);
-                            // Fallback: Use visual indicator for user to tap
-                            feedbackEl.textContent = "TAP SCREEN!";
-                            feedbackEl.style.opacity = '1';
-                            feedbackEl.style.color = '#facc15';
-                            feedbackEl.style.fontSize = '2rem';
-                            setTimeout(() => feedbackEl.style.opacity = '0', 2000);
+                            showTapHint();
+                        }
+
+                        // Double check: if context is still suspended (even if no error thrown yet), show hint
+                        if (state.sound.context.state === 'suspended') {
+                            showTapHint();
                         }
                     }
 
