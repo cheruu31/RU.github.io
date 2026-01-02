@@ -363,8 +363,10 @@
 
         <!-- Countdown Overlay (Hidden for now) -->
         <div id="countdown-overlay"
-            class="absolute inset-0 flex items-center justify-center pointer-events-none z-[60] hidden">
+            class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[60] hidden">
             <span id="countdown-text" class="text-white text-8xl font-black italic neon-text opacity-0"></span>
+            <p id="unlock-hint" class="text-white/60 text-sm font-mono mt-12 tracking-[0.5em] animate-pulse hidden">TAP
+                SCREEN!</p>
         </div>
     </div>
 
@@ -477,11 +479,13 @@
         function unlockAudio() {
             const ctx = listener.context;
 
-            // Clear "TAP SCREEN!" hint on any interaction if it's visible
+            // Clear "TAP SCREEN!" hints on any interaction
             if (feedbackEl.textContent === 'TAP SCREEN!') {
                 feedbackEl.style.opacity = '0';
                 feedbackEl.style.transform = 'scale(0.5)';
             }
+            const preHint = document.getElementById('unlock-hint');
+            if (preHint) preHint.classList.add('hidden');
 
             if (ctx.state === 'suspended') {
                 ctx.resume().then(() => {
@@ -787,7 +791,13 @@
             updateStatus("Prepare!");
             const overlay = document.getElementById('countdown-overlay');
             const text = document.getElementById('countdown-text');
+            const preHint = document.getElementById('unlock-hint');
             overlay.classList.remove('hidden');
+
+            // Show hint immediately if audio implies suspension
+            if (preHint && (state.sound.context.state === 'suspended' || state.sound.context.state === 'closed')) {
+                preHint.classList.remove('hidden');
+            }
 
             let count = 3;
             const runCount = () => {
