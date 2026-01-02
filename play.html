@@ -137,7 +137,36 @@
         }
 
         #model-status {
-            transition: opacity 1s;
+            transition: opacity 0.5s;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #101e22;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        }
+
+        .loading-bar-container {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-bar-fill {
+            height: 100%;
+            background: #25c0f4;
+            width: 0%;
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px #25c0f4;
         }
 
         /* Note Styles */
@@ -182,6 +211,7 @@
             border-color: #ffffff !important;
             opacity: 1 !important;
             animation: pulseActive 0.3s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         .hit-ripple {
@@ -338,7 +368,18 @@
         </div>
     </div>
 
-    <!-- Status Overlay -->
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="text-primary text-xl font-bold tracking-[0.2em] italic neon-text uppercase animate-pulse">
+            LOADING
+        </div>
+        <div class="loading-bar-container">
+            <div id="loading-bar" class="loading-bar-fill"></div>
+        </div>
+        <div id="loading-text" class="text-white/50 text-xs font-mono mt-2 tracking-widest">0%</div>
+    </div>
+
+    <!-- Status Overlay (Debug) -->
     <div id="model-status" class="fixed top-20 left-4 z-[100] pointer-events-none hidden">
         <div class="bg-black/60 backdrop-blur text-white p-2 rounded text-[10px] font-mono border border-white/10">
             <span id="status-text">INITIALIZING...</span>
@@ -432,12 +473,53 @@
         music.getOutput().connect(analyser);
         state.analyser = analyser;
 
+        const assetManager = {
+            total: 4, // 1 Music + 3 Models
+            loaded: 0,
+            check: function () {
+                this.loaded++;
+                const progress = Math.min((this.loaded / this.total) * 100, 100);
+
+                // Update Loading UI
+                const bar = document.getElementById('loading-bar');
+                const text = document.getElementById('loading-text');
+                if (bar) bar.style.width = `${progress}%`;
+                if (text) text.textContent = `${Math.floor(progress)}%`;
+
+                updateStatus(`Loading... ${this.loaded}/${this.total}`);
+
+                if (this.loaded === this.total) {
+                    this.onComplete();
+                }
+            },
+            onComplete: function () {
+                // Remove Loading Screen
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 500);
+                }
+
+                // --- GPU Warm-up / Pre-compile ---
+                Object.keys(models).forEach(k => { if (models[k].object) models[k].object.visible = true; });
+                renderer.compile(scene, camera);
+                renderer.render(scene, camera);
+                Object.keys(models).forEach(k => { if (models[k].object) models[k].object.visible = false; });
+                // --- End Warm-up ---
+
+                updateStatus("Ready");
+                switchCat('CYBERCAT');
+                setTimeout(startEnteringGame, 500);
+            }
+        };
+
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('music/m1.m4a', (buffer) => {
             music.setBuffer(buffer);
             music.setLoop(false);
             music.setVolume(0.5);
             updateStatus("Music Loaded");
+            assetManager.check(); // Mark Music as Loaded
         });
 
         // Dynamic Spotlights - Intense
@@ -517,7 +599,6 @@
         };
 
         const loader = new FBXLoader();
-        let loadedCount = 0;
 
         function loadAllModels() {
             Object.keys(models).forEach(key => {
@@ -561,20 +642,8 @@
                         models[key].action.play();
                     }
                     scene.add(fbx);
-                    loadedCount++;
-                    if (loadedCount === Object.keys(models).length) {
-                        // --- GPU Warm-up / Pre-compile ---
-                        // Force a render of all models to avoid stutter during gameplay
-                        Object.keys(models).forEach(k => { if (models[k].object) models[k].object.visible = true; });
-                        renderer.compile(scene, camera);
-                        renderer.render(scene, camera);
-                        Object.keys(models).forEach(k => { if (models[k].object) models[k].object.visible = false; });
-                        // --- End Warm-up ---
 
-                        updateStatus("Ready");
-                        switchCat('CYBERCAT');
-                        setTimeout(startEnteringGame, 1000); // Start countdown after load
-                    }
+                    assetManager.check(); // Mark Model as Loaded
                 }, undefined, (e) => console.error(e));
             });
         }
