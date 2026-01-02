@@ -365,8 +365,9 @@
         <div id="countdown-overlay"
             class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[60] hidden">
             <span id="countdown-text" class="text-white text-8xl font-black italic neon-text opacity-0"></span>
-            <p id="unlock-hint" class="text-white/60 text-sm font-mono mt-12 tracking-[0.5em] animate-pulse hidden">TAP
-                SCREEN!</p>
+            <p id="unlock-hint"
+                class="text-white text-2xl font-bold mt-20 tracking-widest animate-pulse neon-text hidden">TAP SCREEN!
+            </p>
         </div>
     </div>
 
@@ -483,6 +484,7 @@
             if (feedbackEl.textContent === 'TAP SCREEN!') {
                 feedbackEl.style.opacity = '0';
                 feedbackEl.style.transform = 'scale(0.5)';
+                feedbackEl.classList.remove('animate-pulse');
             }
             const preHint = document.getElementById('unlock-hint');
             if (preHint) preHint.classList.add('hidden');
@@ -835,8 +837,10 @@
                     const showTapHint = () => {
                         feedbackEl.textContent = "TAP SCREEN!";
                         feedbackEl.style.opacity = '1';
-                        feedbackEl.style.color = '#facc15';
-                        feedbackEl.style.transform = 'scale(1.5)';
+                        feedbackEl.style.color = '#ffffff'; // White to match countdown
+                        feedbackEl.style.fontSize = '2rem'; // Smaller to fit mobile
+                        feedbackEl.style.transform = 'scale(1)';
+                        feedbackEl.classList.add('animate-pulse');
                     };
 
                     // Start Music (Safe Wrappers)
